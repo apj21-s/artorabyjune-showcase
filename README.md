@@ -22,6 +22,9 @@ More: [shop](docs/screenshots/shop-desktop.png) · [gifting guide](docs/screensh
 - **Admin studio.** Orders, quotes, stages and tracking, products with photo upload, reviews, coupons and every line of site copy, without touching code.
 - **Security.** Prices are computed on the server, payments verified by signature, Helmet CSP, rate limits, same-origin checks, httpOnly cookies.
 - **Serverless deployment.** Runs on Vercel next to MongoDB Atlas in Mumbai, with a reused database connection, a daily cron for cart reminders, and pages at about 0.2 s.
+- **Orders from Instagram and WhatsApp.** The owner adds DM orders in four steps; they get an order number, stock and emails like website orders, and reach the customer through a private link.
+- **Emails through Gmail, no domain needed.** An outbox with retries and duplicate protection, plus email confirmation before customers see orders matched by email.
+- **Built for a non-technical owner.** A "What needs you today" list, a phone admin with a bottom tab bar, and a crop step that frames every product photo exactly like the shop card.
 - **Phone-first touches.** Thumb-reach tab bar, auto-sliding swipe rows, sticky buy bar, bottom sheets.
 
 ## Tech
