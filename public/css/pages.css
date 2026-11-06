@@ -425,7 +425,7 @@
 @media (max-width: 860px){
   .paths{ grid-template-columns:1fr; padding-top:48px; }
   .ba-layout, .meet-june, .product-layout, .checkout-layout, .story-detail, .about-hero, .planner, .occasion-section, .contact-layout, .auth-shell, .sketch-reveal{ grid-template-columns:1fr; }
-  .product-gallery, .order-summary{ position:static; }
+  .product-gallery, .order-summary{ position:static; top:auto; }
   .order-summary{ order:-1; }
   .account-layout{ grid-template-columns:1fr; }
   .side-tabs{ position:static; display:flex; overflow-x:auto; gap:6px; padding-bottom:4px; }
@@ -566,3 +566,8 @@
 .step-progress{ position:absolute; left:22px; right:22px; bottom:14px; height:1.6px; background:repeating-linear-gradient(90deg, var(--cherry) 0 7px, transparent 7px 12px); transform:scaleX(0); transform-origin:0 50%; opacity:0; pointer-events:none; }
 .step.is-playing .step-progress{ opacity:.8; animation:stepThread 5.6s linear forwards; }
 @keyframes stepThread{ to{ transform:scaleX(1); } }
+.verify-note{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:14px 0 18px; margin-bottom:18px; border-bottom:1.4px dashed rgba(34,29,25,.25); font-size:.92rem; color:var(--ink-soft); }
+.verify-note p{ flex:1 1 280px; margin:0; }
+.auth-note{ margin:0 0 16px; padding:12px 14px; border-left:3px solid var(--sage, #6b7f5c); background:rgba(107,127,92,.1); font-size:.92rem; line-height:1.5; color:var(--ink); }
+.mail-hint{ max-width:62ch; margin:14px auto 18px; padding-left:14px; border-left:3px solid var(--ochre); font-size:.92rem; line-height:1.55; color:var(--ink-soft); text-align:left; }
+.order-head + .mail-hint{ margin:6px 0 22px; }

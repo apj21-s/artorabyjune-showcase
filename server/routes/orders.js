@@ -132,8 +132,10 @@ router.post('/checkout', limiters.write, validate(z.object({
 
   const payment = await paymentFor(order, 'full', order.total);
   if (payment.provider === 'manual') {
-    await mail.send({ to: order.email, ...mail.templates.shopOrderPlaced(order) });
-    await mail.notifyAdmin(`New shop order ${order.number} (awaiting UPI)`, [`${order.name} · ₹${order.total}`], `/admin#orders/${order._id}`);
+    await Promise.all([
+      mail.send({ to: order.email, ...mail.templates.shopOrderPlaced(order), key: `order-placed:${order._id}`, kind: 'order' }),
+      mail.notifyAdmin(`New shop order ${order.number} (awaiting UPI)`, [`${order.name} · ₹${order.total}`], `/admin#orders/${order._id}`, { key: `admin-order:${order._id}`, replyTo: order.email }),
+    ]);
   }
   res.status(201).json({ number: order.number, token: order.accessToken, payment });
 });
@@ -183,12 +185,14 @@ router.post('/commissions', limiters.write, validate(z.object({
   });
   await order.save();
 
-  await mail.send({ to: order.email, ...mail.templates.commissionReceived(order) });
-  await mail.notifyAdmin(`New commission ${order.number}`, [
-    `${order.name} (${order.email}) · ${tier.title}`,
-    b.occasion ? `Occasion: ${b.occasion}` : '',
-    b.story.slice(0, 400),
-  ].filter(Boolean), `/admin#orders/${order._id}`);
+  await Promise.all([
+    mail.send({ to: order.email, ...mail.templates.commissionReceived(order), key: `commission-received:${order._id}`, kind: 'commission' }),
+    mail.notifyAdmin(`New commission ${order.number}`, [
+      `${order.name} (${order.email}) · ${tier.title}`,
+      b.occasion ? `Occasion: ${b.occasion}` : '',
+      b.story.slice(0, 400),
+    ].filter(Boolean), `/admin#orders/${order._id}`, { key: `admin-commission:${order._id}`, replyTo: order.email }),
+  ]);
 
   res.status(201).json({ number: order.number, token: order.accessToken });
 });
@@ -218,6 +222,12 @@ router.get('/orders/track', limiters.write, async (req, res) => {
 router.get('/orders/:number', async (req, res) => {
   const order = await findAccessibleOrder(req);
   if (!order) return res.status(404).json({ error: 'We couldn’t open that order. Try the link in your email, or sign in.' });
+  // Opening the private order link while signed in adds the order to that account (the link is the proof).
+  const token = String(req.query.t || '');
+  if (req.user && !order.userId && token && order.accessToken && safeEqual(token, order.accessToken)) {
+    order.userId = req.user._id;
+    await order.save();
+  }
   res.json({ order: customerView(order), payments: razorpay.enabled() ? 'razorpay' : 'manual' });
 });
 
@@ -260,7 +270,7 @@ router.post('/orders/:number/changes', limiters.write, validate(z.object({
   order.status = 'received';
   order.history.push({ status: 'received', note: 'You asked for a few changes. June is updating the sketch.' });
   await order.save();
-  await mail.notifyAdmin(`Changes requested on ${order.number}`, [req.body.message], `/admin#orders/${order._id}`);
+  await mail.notifyAdmin(`Changes requested on ${order.number}`, [req.body.message], `/admin#orders/${order._id}`, { key: `admin-changes:${order._id}:${order.commission.changeRequests.length}`, replyTo: order.email });
   res.json({ order: customerView(order) });
 });
 
@@ -293,7 +303,7 @@ router.post('/orders/:number/review', limiters.write, validate(z.object({
     orderNumber: order.number,
     approved: false,
   });
-  await mail.notifyAdmin(`New ${req.body.rating}★ review on ${order.number}`, [req.body.text], '/admin#reviews');
+  await mail.notifyAdmin(`New ${req.body.rating}★ review on ${order.number}`, [req.body.text], '/admin#reviews', { key: `admin-review:${order._id}` });
   res.status(201).json({ ok: true });
 });
 
